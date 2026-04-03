@@ -1,0 +1,28 @@
+# Python virtual environment
+venv/
+.env/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Large / unnecessary files
+*.zip
+*.tar
+*.gz
+*.mp4
+*.mov
+*.avi
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node (if any)
+node_modules/
+
+# Build/dist
+dist/
+build/

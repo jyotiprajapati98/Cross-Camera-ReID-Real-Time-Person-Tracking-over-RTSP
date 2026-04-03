@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross-Camera ReID Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/socket.io/dist/socket.io.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f1117; color: #e2e8f0; font-family: system-ui, sans-serif; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; background: #1a1d27; border-bottom: 1px solid #2d3148;
+  }
+  header h1 { font-size: 16px; font-weight: 500; letter-spacing: 0.05em; color: #a5b4fc; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e;
+         display: inline-block; margin-right: 6px; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  .stat-bar {
+    display: flex; gap: 24px; padding: 12px 24px; background: #13151f;
+    border-bottom: 1px solid #2d3148;
+  }
+  .stat { display: flex; flex-direction: column; }
+  .stat-val { font-size: 28px; font-weight: 600; color: #a5b4fc; }
+  .stat-lbl { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
+
+  .main { display: grid; grid-template-columns: 1fr 1fr 320px; gap: 12px; padding: 16px; height: calc(100vh - 110px); }
+
+  .cam-panel { display: flex; flex-direction: column; gap: 8px; }
+  .cam-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em; }
+  .cam-panel img { width: 100%; border-radius: 8px; border: 1px solid #2d3148; background: #1a1d27; }
+
+  .event-panel { display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+  .event-panel h2 { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em; }
+  #event-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+
+  .event-card {
+    background: #1a1d27; border: 1px solid #2d3148; border-radius: 8px;
+    padding: 10px 12px; font-size: 13px;
+    animation: fadein .3s ease;
+  }
+  @keyframes fadein { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+  .event-card.handoff { border-left: 3px solid #f59e0b; }
+  .event-card.new_person { border-left: 3px solid #22c55e; }
+
+  .ev-top { display: flex; justify-content: space-between; margin-bottom: 2px; }
+  .ev-gid { font-weight: 600; color: #a5b4fc; }
+  .ev-time { color: #475569; font-size: 11px; }
+  .ev-detail { color: #94a3b8; font-size: 12px; }
+  .ev-badge {
+    display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px;
+    margin-right: 4px; font-weight: 600;
+  }
+  .badge-handoff   { background: #451a03; color: #f59e0b; }
+  .badge-new_person{ background: #052e16; color: #22c55e; }
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="dot"></span>Cross-Camera ReID — Live</h1>
+  <span id="conn-status" style="font-size:12px;color:#475569">connecting…</span>
+</header>
+
+<div class="stat-bar">
+  <div class="stat"><span class="stat-val" id="stat-persons">0</span><span class="stat-lbl">Persons tracked</span></div>
+  <div class="stat"><span class="stat-val" id="stat-handoffs">0</span><span class="stat-lbl">Camera handoffs</span></div>
+  <div class="stat"><span class="stat-val" id="stat-time">--:--:--</span><span class="stat-lbl">Current time</span></div>
+</div>
+
+<div class="main">
+  <div class="cam-panel">
+    <div class="cam-label">Camera A</div>
+    <img id="feed-a" src="/feed/cam_a" alt="Camera A">
+  </div>
+  <div class="cam-panel">
+    <div class="cam-label">Camera B</div>
+    <img id="feed-b" src="/feed/cam_b" alt="Camera B">
+  </div>
+  <div class="event-panel">
+    <h2>Live events</h2>
+    <div id="event-list"></div>
+  </div>
+</div>
+
+<script>
+const socket = io();
+
+socket.on("connect", () => {
+  document.getElementById("conn-status").textContent = "connected";
+  document.getElementById("conn-status").style.color = "#22c55e";
+});
+socket.on("disconnect", () => {
+  document.getElementById("conn-status").textContent = "disconnected";
+  document.getElementById("conn-status").style.color = "#ef4444";
+});
+
+socket.on("stats", d => {
+  document.getElementById("stat-persons").textContent  = d.persons;
+  document.getElementById("stat-handoffs").textContent = d.handoffs;
+});
+
+socket.on("event", ev => {
+  const list  = document.getElementById("event-list");
+  const card  = document.createElement("div");
+  card.className = `event-card ${ev.type}`;
+  const badgeClass = ev.type === "handoff" ? "badge-handoff" : "badge-new_person";
+  const badgeText  = ev.type === "handoff" ? "HANDOFF" : "NEW";
+  card.innerHTML = `
+    <div class="ev-top">
+      <span class="ev-gid">
+        <span class="ev-badge ${badgeClass}">${badgeText}</span>${ev.global_id}
+      </span>
+      <span class="ev-time">${ev.time}</span>
+    </div>
+    <div class="ev-detail">${ev.detail}</div>`;
+  list.prepend(card);
+  // Keep last 40 cards in DOM
+  while (list.children.length > 40) list.removeChild(list.lastChild);
+});
+
+// Clock
+setInterval(() => {
+  document.getElementById("stat-time").textContent =
+    new Date().toLocaleTimeString();
+}, 1000);
+</script>
+</body>
+</html>

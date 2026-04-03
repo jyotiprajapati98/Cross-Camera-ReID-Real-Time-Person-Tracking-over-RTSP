@@ -1,0 +1,46 @@
+[
+  {
+    "global_id": "G-0000",
+    "face_id": "none",
+    "trajectory": [
+      "cam_b"
+    ],
+    "cameras_seen": [
+      "cam_b"
+    ],
+    "last_camera": "cam_b"
+  },
+  {
+    "global_id": "G-0001",
+    "face_id": "none",
+    "trajectory": [
+      "cam_b"
+    ],
+    "cameras_seen": [
+      "cam_b"
+    ],
+    "last_camera": "cam_b"
+  },
+  {
+    "global_id": "G-0002",
+    "face_id": "F-0000",
+    "trajectory": [
+      "cam_b"
+    ],
+    "cameras_seen": [
+      "cam_b"
+    ],
+    "last_camera": "cam_b"
+  },
+  {
+    "global_id": "G-0003",
+    "face_id": "none",
+    "trajectory": [
+      "cam_b"
+    ],
+    "cameras_seen": [
+      "cam_b"
+    ],
+    "last_camera": "cam_b"
+  }
+]

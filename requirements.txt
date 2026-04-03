@@ -1,0 +1,10 @@
+ultralytics>=8.0.0
+faiss-cpu>=1.7.4
+opencv-python>=4.8.0
+numpy>=1.24.0
+torch>=2.0.0
+torchvision>=0.15.0
+flask>=3.0.0
+flask-socketio>=5.3.0
+playsound>=1.3.0        # optional: audio alert beep
+requests>=2.31.0        # optional: webhook alerts
